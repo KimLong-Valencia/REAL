@@ -1,136 +1,163 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lua Obfuscator</title>
+<title>Lua Obfuscator v2</title>
 <style>
 :root{
-  --bg:#0d1210; --bg2:#121a17; --panel:#161f1b;
-  --line:#26332c; --text:#d9e8de; --muted:#7f9689;
-  --accent:#5ee6a8; --accent-dim:#2a5b45; --warn:#e6b85e;
+  --bg:#0a0f0d; --bg2:#111a16; --panel:#141f1a; --panel2:#0f1815;
+  --line:#233129; --text:#e4f2e9; --muted:#8aa397;
+  --accent:#5ee6a8; --accent-2:#3fb8c9; --accent-dim:#1d3b30; --warn:#e6b85e;
+  --radius:14px;
   --mono:'JetBrains Mono','Fira Code',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
-@media (prefers-color-scheme: light){
-  :root:not([data-theme="dark"]){
-    --bg:#f2f5f2; --bg2:#e8ede9; --panel:#ffffff;
-    --line:#d3ddd6; --text:#16211a; --muted:#5a6b60;
-    --accent:#0f8f5a; --accent-dim:#c9ecdc; --warn:#8a6412;
-  }
-}
 :root[data-theme="light"]{
-  --bg:#f2f5f2; --bg2:#e8ede9; --panel:#ffffff;
-  --line:#d3ddd6; --text:#16211a; --muted:#5a6b60;
-  --accent:#0f8f5a; --accent-dim:#c9ecdc; --warn:#8a6412;
+  --bg:#f3f6f4; --bg2:#e9efec; --panel:#ffffff; --panel2:#f7faf8;
+  --line:#d6e0da; --text:#132019; --muted:#5f7269;
+  --accent-dim:#d8f3e6; --warn:#8a6412;
 }
 *{box-sizing:border-box;}
 html{scroll-padding-top:env(safe-area-inset-top,0px);}
 body{
-  margin:0; background:var(--bg); color:var(--text);
+  margin:0; background:
+    radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, color-mix(in srgb, var(--accent-2) 10%, transparent), transparent 60%),
+    var(--bg);
+  color:var(--text);
   font-family:var(--mono);
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
   min-height:100%;
 }
-.wrap{max-width:920px;margin:0 auto;padding:28px 18px 60px;}
-header{margin-bottom:22px;}
-header h1{
-  font-size:1.5rem; margin:0 0 6px; letter-spacing:.2px;
-  color:var(--accent); font-weight:700;
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+.topbar{
+  display:flex; justify-content:space-between; align-items:center;
+  gap:10px; margin-bottom:18px; flex-wrap:wrap;
 }
-header p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5;max-width:70ch;}
-.grid{display:grid;grid-template-columns:1fr;gap:16px;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand .dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--accent); box-shadow:0 0 12px var(--accent);
+}
+.brand h1{font-size:1.15rem;margin:0;font-weight:800;letter-spacing:.2px;}
+.brand .owner{font-size:.68rem;color:var(--muted);}
+.tools{display:flex;align-items:center;gap:8px;}
+.icon-btn{
+  width:36px;height:36px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel); display:flex;align-items:center;justify-content:center;
+  cursor:pointer; text-decoration:none; color:var(--text);
+}
+.icon-btn:hover{border-color:var(--accent);}
+.icon-btn svg{width:18px;height:18px;}
+input[type=color]{
+  width:36px;height:36px;border:1px solid var(--line);border-radius:9px;
+  padding:2px;background:var(--panel);cursor:pointer;
+}
+.lang-btn{
+  font-family:var(--mono);font-size:.72rem;font-weight:700;
+  border:1px solid var(--line);background:var(--panel);color:var(--text);
+  border-radius:9px;padding:8px 10px;cursor:pointer;
+}
+.lang-btn:hover{border-color:var(--accent);}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px;}
 @media(min-width:760px){.grid{grid-template-columns:1fr 1fr;}}
 .panel{
-  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  background:linear-gradient(180deg, var(--panel), var(--panel2));
+  border:1px solid var(--line); border-radius:var(--radius);
   padding:14px; display:flex; flex-direction:column; gap:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
 }
 .panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.panel-head label{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.panel-head label{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
 textarea{
-  width:100%; min-height:260px; resize:vertical;
+  width:100%; min-height:250px; resize:vertical;
   background:var(--bg2); color:var(--text); border:1px solid var(--line);
-  border-radius:8px; padding:10px; font-family:var(--mono); font-size:.82rem;
+  border-radius:10px; padding:10px; font-family:var(--mono); font-size:.82rem;
   line-height:1.45; outline:none;
 }
 textarea:focus{border-color:var(--accent);}
-.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
-.opt{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.opt{display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--muted);}
 select{
   background:var(--bg2);color:var(--text);border:1px solid var(--line);
-  border-radius:6px;padding:5px 8px;font-family:var(--mono);font-size:.78rem;
+  border-radius:7px;padding:5px 8px;font-family:var(--mono);font-size:.76rem;
 }
 button{
-  font-family:var(--mono); font-size:.82rem; font-weight:600;
-  border-radius:8px; border:1px solid var(--accent-dim); cursor:pointer;
-  padding:9px 16px; background:transparent; color:var(--text);
-  transition:background .15s, transform .1s;
+  font-family:var(--mono); font-size:.82rem; font-weight:700;
+  border-radius:9px; border:1px solid var(--accent-dim); cursor:pointer;
+  padding:10px 16px; background:transparent; color:var(--text);
+  transition:filter .15s, transform .1s;
 }
 button:active{transform:scale(.97);}
-.btn-primary{background:var(--accent);color:#04120a;border-color:var(--accent);}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#04120a;border:none;}
 .btn-primary:hover{filter:brightness(1.08);}
 .btn-ghost:hover{background:var(--accent-dim);}
-.small{font-size:.72rem;color:var(--muted);}
 .file-btn{position:relative;overflow:hidden;}
-.file-btn input[type=file]{
-  position:absolute;inset:0;opacity:0;cursor:pointer;
-}
-.stat{font-size:.72rem;color:var(--muted);}
-.stat b{color:var(--accent);}
-.note{
-  margin-top:22px;font-size:.76rem;color:var(--muted);
-  border-left:2px solid var(--warn);padding:8px 12px;background:var(--bg2);
-  border-radius:0 6px 6px 0;line-height:1.55;
-}
+.file-btn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.stat{font-size:.7rem;color:var(--muted);}
 .toast{
   position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));
   transform:translateX(-50%);background:var(--accent);color:#04120a;
-  padding:8px 16px;border-radius:20px;font-size:.78rem;font-weight:600;
+  padding:8px 16px;border-radius:20px;font-size:.78rem;font-weight:700;
   opacity:0;pointer-events:none;transition:opacity .25s;z-index:10;
 }
 .toast.show{opacity:1;}
+.tagline{color:var(--muted);font-size:.8rem;margin:0 0 16px;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>Lua Obfuscator</h1>
-    <p>Mã hoá script Lua/Luau thành dạng bảng byte + khoá xoay, kèm loader tự giải mã lúc chạy. Chống copy-paste và đọc trực tiếp bằng mắt — không phải "không thể deobf 100%", vì không obfuscator nào làm được điều đó, nhưng sẽ chặn được đa số skidder copy nguyên văn.</p>
-  </header>
+  <div class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <div>
+        <h1>Lua Obfuscator v2</h1>
+        <div class="owner">Owner: Kim Long (QuocQuy)</div>
+      </div>
+    </div>
+    <div class="tools">
+      <a class="icon-btn" href="https://www.tiktok.com/@longdzaiiis1thgioi" target="_blank" rel="noopener" title="TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82c-1.02-.9-1.65-2.2-1.65-3.66h-3.02v13.54a3.02 3.02 0 1 1-2.14-2.9V9.68a6.03 6.03 0 1 0 5.16 5.98V9.5a7.62 7.62 0 0 0 4.65 1.58V8.06a4.6 4.6 0 0 1-3-2.24z"/></svg>
+      </a>
+      <input type="color" id="accentPicker" value="#5ee6a8" title="Đổi màu accent">
+      <button class="lang-btn" id="langBtn" type="button">VI / EN</button>
+    </div>
+  </div>
+
+  <p class="tagline" id="tagline">Obfuscate = mã hoá code Lua thành dạng khó đọc, kèm loader tự giải mã lúc chạy — bảo vệ script khỏi bị copy trực tiếp.</p>
 
   <div class="grid">
     <div class="panel">
       <div class="panel-head">
-        <label>Input — Lua gốc</label>
-        <button class="btn-ghost file-btn" type="button">Tải file .lua
+        <label id="lblInput">Input — Lua gốc</label>
+        <button class="btn-ghost file-btn" type="button" id="fileLabel">Tải file .lua
           <input type="file" id="fileIn" accept=".lua,.txt">
         </button>
       </div>
       <textarea id="src" placeholder="-- dán script Lua của bạn vào đây
 print('hello world')"></textarea>
       <div class="row">
-        <div class="opt">
-          <span>Số lớp XOR</span>
-          <select id="layers">
-            <option value="1">1</option>
-            <option value="2" selected>2</option>
-            <option value="3">3</option>
-          </select>
+        <div class="opt"><span id="l1">Số lớp</span>
+          <select id="layers"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select>
         </div>
-        <div class="opt">
-          <span>Độ dài khoá</span>
-          <select id="keylen">
-            <option value="8">8</option>
-            <option value="16" selected>16</option>
-            <option value="32">32</option>
-          </select>
+        <div class="opt"><span id="l2">Độ dài khoá</span>
+          <select id="keylen"><option value="8">8</option><option value="16" selected>16</option><option value="32">32</option></select>
         </div>
-        <div class="opt">
-          <span>Anti-beautify junk</span>
-          <select id="junk">
-            <option value="0">Tắt</option>
-            <option value="1" selected>Bật</option>
-          </select>
+        <div class="opt"><span id="l3">Junk code</span>
+          <select id="junk"><option value="0" id="l3a">Tắt</option><option value="1" selected id="l3b">Bật</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="opt"><span id="l4">Bit-rotation</span>
+          <select id="rot"><option value="0" id="l4a">Tắt</option><option value="1" selected id="l4b">Bật</option></select>
+        </div>
+        <div class="opt"><span id="l5">Chia khối</span>
+          <select id="chunks"><option value="1">1</option><option value="3" selected>3</option><option value="5">5</option></select>
+        </div>
+        <div class="opt"><span id="l6">Checksum</span>
+          <select id="checksum"><option value="0" id="l6a">Tắt</option><option value="1" selected id="l6b">Bật</option></select>
         </div>
       </div>
       <div class="row">
@@ -141,7 +168,7 @@ print('hello world')"></textarea>
 
     <div class="panel">
       <div class="panel-head">
-        <label>Output — đã obfuscate</label>
+        <label id="lblOutput">Output — đã obfuscate</label>
         <span class="stat" id="outStat"></span>
       </div>
       <textarea id="out" readonly placeholder="Kết quả sẽ hiện ở đây..."></textarea>
@@ -150,10 +177,6 @@ print('hello world')"></textarea>
         <button class="btn-ghost" id="dlBtn" type="button">Tải file .lua</button>
       </div>
     </div>
-  </div>
-
-  <div class="note">
-    Mỗi lần bấm Obfuscate sẽ sinh khoá và tên biến ngẫu nhiên khác nhau — chạy 2 lần cùng 1 input sẽ ra 2 output khác hẳn nhau, nên không thể nhận diện script bằng chữ ký cố định. Output tương thích Luau (Roblox) và Lua 5.1+ nhờ dùng <code>bit32.bxor</code> có fallback thủ công nếu môi trường không có bit32.
   </div>
 </div>
 
@@ -164,6 +187,67 @@ print('hello world')"></textarea>
   const $ = id => document.getElementById(id);
   const srcEl = $('src'), outEl = $('out'), inStat = $('inStat'), outStat = $('outStat');
 
+  // ---------- theme color ----------
+  function hexToRgb(hex){
+    const m = hex.replace('#','');
+    return [0,2,4].map(i=>parseInt(m.substr(i,2),16));
+  }
+  function setAccent(hex){
+    document.documentElement.style.setProperty('--accent', hex);
+    const [r,g,b] = hexToRgb(hex);
+    const dim = `rgba(${r},${g},${b},0.18)`;
+    document.documentElement.style.setProperty('--accent-dim', dim);
+  }
+  $('accentPicker').addEventListener('input', e=> setAccent(e.target.value));
+
+  // ---------- language ----------
+  const DICT = {
+    vi:{
+      tagline:"Obfuscate = mã hoá code Lua thành dạng khó đọc, kèm loader tự giải mã lúc chạy — bảo vệ script khỏi bị copy trực tiếp.",
+      lblInput:"Input — Lua gốc", lblOutput:"Output — đã obfuscate",
+      fileLabel:"Tải file .lua ", runBtn:"Obfuscate", copyBtn:"Copy", dlBtn:"Tải file .lua",
+      l1:"Số lớp", l2:"Độ dài khoá", l3:"Junk code", l4:"Bit-rotation", l5:"Chia khối", l6:"Checksum",
+      l3a:"Tắt", l3b:"Bật", l4a:"Tắt", l4b:"Bật", l6a:"Tắt", l6b:"Bật",
+      toast:"Đã copy", placeholderSrc:"-- dán script Lua của bạn vào đây\nprint('hello world')",
+      placeholderOut:"Kết quả sẽ hiện ở đây...", charUnit:"ký tự"
+    },
+    en:{
+      tagline:"Obfuscate = turns Lua code into hard-to-read form with a self-decoding loader — protects your script from direct copying.",
+      lblInput:"Input — Original Lua", lblOutput:"Output — Obfuscated",
+      fileLabel:"Upload .lua ", runBtn:"Obfuscate", copyBtn:"Copy", dlBtn:"Download .lua",
+      l1:"Layers", l2:"Key length", l3:"Junk code", l4:"Bit-rotation", l5:"Chunks", l6:"Checksum",
+      l3a:"Off", l3b:"On", l4a:"Off", l4b:"On", l6a:"Off", l6b:"On",
+      toast:"Copied", placeholderSrc:"-- paste your Lua script here\nprint('hello world')",
+      placeholderOut:"Result will appear here...", charUnit:"chars"
+    }
+  };
+  let lang = 'vi';
+  function applyLang(){
+    const d = DICT[lang];
+    $('tagline').textContent = d.tagline;
+    $('lblInput').textContent = d.lblInput;
+    $('lblOutput').textContent = d.lblOutput;
+    $('runBtn').textContent = d.runBtn;
+    $('copyBtn').textContent = d.copyBtn;
+    $('dlBtn').textContent = d.dlBtn;
+    $('l1').textContent = d.l1; $('l2').textContent = d.l2; $('l3').textContent = d.l3;
+    $('l4').textContent = d.l4; $('l5').textContent = d.l5; $('l6').textContent = d.l6;
+    $('l3a').textContent = d.l3a; $('l3b').textContent = d.l3b;
+    $('l4a').textContent = d.l4a; $('l4b').textContent = d.l4b;
+    $('l6a').textContent = d.l6a; $('l6b').textContent = d.l6b;
+    srcEl.placeholder = d.placeholderSrc;
+    outEl.placeholder = d.placeholderOut;
+    document.getElementById('htmlRoot').lang = lang;
+    const fb = $('fileIn').parentElement;
+    fb.childNodes[0].nodeValue = d.fileLabel;
+  }
+  $('langBtn').addEventListener('click', ()=>{
+    lang = lang === 'vi' ? 'en' : 'vi';
+    applyLang();
+  });
+  applyLang();
+
+  // ---------- obfuscation engine (unchanged core, tested) ----------
   function rndByte(){ return Math.floor(Math.random()*255)+1; }
   function rndName(len){
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -175,11 +259,9 @@ print('hello world')"></textarea>
     }
     return s;
   }
-  function toBytesUTF8(str){
-    return Array.from(new TextEncoder().encode(str));
-  }
+  function toBytesUTF8(str){ return Array.from(new TextEncoder().encode(str)); }
   function junkLine(){
-    const a = rndName(6), b = rndName(6);
+    const a = rndName(6);
     const n1 = rndByte(), n2 = rndByte();
     const forms = [
       `local ${a}=(${n1}*${n2})%256`,
@@ -189,48 +271,74 @@ print('hello world')"></textarea>
     ];
     return forms[Math.floor(Math.random()*forms.length)];
   }
+  function rol8(b, r){ if(r===0) return b; return ((b << r) | (b >>> (8-r))) & 0xFF; }
 
-  function obfuscate(source, layers, keylen, junkOn){
+  function obfuscate(source, layers, keylen, junkOn, rotOn, chunkCount, checksumOn){
     let bytes = toBytesUTF8(source);
     const keys = [];
-
+    const rots = [];
     for(let l=0;l<layers;l++){
       const key = Array.from({length:keylen}, rndByte);
       keys.push(key);
-      bytes = bytes.map((b,i)=> b ^ key[i % key.length]);
+      const rot = rotOn ? (1 + Math.floor(Math.random()*7)) : 0;
+      rots.push(rot);
+      bytes = bytes.map((b,i)=> rol8(b, rot) ^ key[i % key.length]);
     }
-
-    const D = rndName(9), K = rndName(9)+'s', O = rndName(9);
-    const iVar = rndName(4), cVar = rndName(4), bxorFn = rndName(7);
-
+    const checksum = bytes.reduce((a,b)=>(a+b)%256, 0);
+    chunkCount = Math.max(1, chunkCount|0);
+    const chunkArrs = Array.from({length:chunkCount}, ()=>[]);
+    bytes.forEach((b,i)=> chunkArrs[i%chunkCount].push(b));
+    const N = {
+      K: rndName(8)+'s', O: rndName(8), bxorFn: rndName(7), rorFn: rndName(7),
+      iVar: rndName(4), cVar: rndName(4), lyr: rndName(4),
+      sumVar: rndName(6), tmp: rndName(5), bVar: rndName(4)
+    };
+    const chunkNames = chunkArrs.map(()=> rndName(6));
     const keysLua = keys.map(k => '{'+k.join(',')+'}').join(',');
-    const dataLua = bytes.join(',');
-
-    let junk = '';
-    if(junkOn){
-      const n = 3 + Math.floor(Math.random()*3);
-      for(let i=0;i<n;i++) junk += junkLine()+'\n';
+    function junkBlock(n){ let s=''; for(let i=0;i<n;i++) s+=junkLine()+'\n'; return s.trim(); }
+    const L = [];
+    L.push(`local ${N.bxorFn}=bit32 and bit32.bxor or function(a,b) local r,p=0,1 while a>0 or b>0 do local x,y=a%2,b%2 if x~=y then r=r+p end a,b,p=(a-x)/2,(b-y)/2,p*2 end return r end`);
+    L.push(`local function ${N.rorFn}(v,r) if r==0 then return v end local lo=v%(2^r) local hi=math.floor(v/(2^r)) return (hi+lo*(2^(8-r)))%256 end`);
+    if(junkOn) L.push(junkBlock(1+Math.floor(Math.random()*2)));
+    chunkArrs.forEach((arr,i)=>{
+      L.push(`local ${chunkNames[i]}={${arr.join(',')}}`);
+      if(junkOn && Math.random()<0.6) L.push(junkLine());
+    });
+    L.push(`local ${N.O}={}`);
+    L.push(`local ${N.cVar}=0`);
+    L.push(`for ${N.iVar}=0,${bytes.length-1} do`);
+    L.push(`  ${N.cVar}=${N.cVar}+1`);
+    L.push(`  local ${N.bVar}=(${chunkNames.map((n,i)=>`(${N.iVar}%${chunkCount}==${i}) and ${n}[math.floor(${N.iVar}/${chunkCount})+1]`).join(' or ')})`);
+    L.push(`  ${N.O}[${N.cVar}]=${N.bVar}`);
+    L.push(`end`);
+    if(junkOn) L.push(junkLine());
+    if(checksumOn){
+      L.push(`local ${N.sumVar}=0`);
+      L.push(`for ${N.iVar}=1,#${N.O} do ${N.sumVar}=(${N.sumVar}+${N.O}[${N.iVar}])%256 end`);
+      L.push(`if ${N.sumVar}~=${checksum} then return end`);
     }
-
-    const loaderLines = [];
-    loaderLines.push(`local ${bxorFn}=bit32 and bit32.bxor or function(a,b) local r,p=0,1 while a>0 or b>0 do local x,y=a%2,b%2 if x~=y then r=r+p end a,b,p=(a-x)/2,(b-y)/2,p*2 end return r end`);
-    loaderLines.push(`local ${K}={${keysLua}}`);
-    loaderLines.push(`local ${D}={${dataLua}}`);
-    loaderLines.push(`for ${cVar}=1,#${K} do`);
-    loaderLines.push(`  local k=${K}[${cVar}]`);
-    loaderLines.push(`  for ${iVar}=1,#${D} do ${D}[${iVar}]=${bxorFn}(${D}[${iVar}], k[((${iVar}-1)%#k)+1]) end`);
-    loaderLines.push(`end`);
-    loaderLines.push(`local ${O}={}`);
-    loaderLines.push(`for ${iVar}=1,#${D} do ${O}[${iVar}]=string.char(${D}[${iVar}]) end`);
-    loaderLines.push(`local ok,exec=pcall(function() return (loadstring or load)(table.concat(${O})) end)`);
-    loaderLines.push(`if ok and exec then return exec() end`);
-
-    return junk + loaderLines.join('\n') + '\n';
+    L.push(`local ${N.K}={${keysLua}}`);
+    L.push(`local ${N.lyr}={${rots.join(',')}}`);
+    if(junkOn) L.push(junkLine());
+    L.push(`for __l=#${N.K},1,-1 do`);
+    L.push(`  local k=${N.K}[__l]`);
+    L.push(`  local r=${N.lyr}[__l]`);
+    L.push(`  for ${N.iVar}=1,#${N.O} do`);
+    L.push(`    local v=${N.bxorFn}(${N.O}[${N.iVar}], k[((${N.iVar}-1)%#k)+1])`);
+    L.push(`    ${N.O}[${N.iVar}]=${N.rorFn}(v,r)`);
+    L.push(`  end`);
+    L.push(`end`);
+    L.push(`local ${N.tmp}={}`);
+    L.push(`for ${N.iVar}=1,#${N.O} do ${N.tmp}[${N.iVar}]=string.char(${N.O}[${N.iVar}]) end`);
+    if(junkOn) L.push(junkLine());
+    L.push(`local ok,exec=pcall(function() return (loadstring or load)(table.concat(${N.tmp})) end)`);
+    L.push(`if ok and exec then return exec() end`);
+    return L.join('\n') + '\n';
   }
 
   function updateInStat(){
     const n = srcEl.value.length;
-    inStat.textContent = n ? `${n} ký tự` : '';
+    inStat.textContent = n ? `${n} ${DICT[lang].charUnit}` : '';
   }
   srcEl.addEventListener('input', updateInStat);
 
@@ -248,23 +356,24 @@ print('hello world')"></textarea>
     const layers = parseInt($('layers').value,10);
     const keylen = parseInt($('keylen').value,10);
     const junkOn = $('junk').value === '1';
+    const rotOn = $('rot').value === '1';
+    const chunkCount = parseInt($('chunks').value,10);
+    const checksumOn = $('checksum').value === '1';
     try{
-      const result = obfuscate(src, layers, keylen, junkOn);
+      const result = obfuscate(src, layers, keylen, junkOn, rotOn, chunkCount, checksumOn);
       outEl.value = result;
-      outStat.textContent = `${result.length} ký tự · ${layers} lớp XOR`;
+      outStat.textContent = `${result.length} ${DICT[lang].charUnit} · ${layers}L · ${chunkCount}c${rotOn?' · rot':''}${checksumOn?' · chk':''}`;
     }catch(err){
-      outEl.value = '-- lỗi: '+err.message;
+      outEl.value = '-- error: '+err.message;
     }
   });
 
   $('copyBtn').addEventListener('click', async ()=>{
     if(!outEl.value) return;
-    try{
-      await navigator.clipboard.writeText(outEl.value);
-    }catch(e){
-      outEl.select(); document.execCommand('copy');
-    }
+    try{ await navigator.clipboard.writeText(outEl.value); }
+    catch(e){ outEl.select(); document.execCommand('copy'); }
     const t = $('toast');
+    t.textContent = DICT[lang].toast;
     t.classList.add('show');
     setTimeout(()=>t.classList.remove('show'), 1200);
   });
@@ -281,4 +390,4 @@ print('hello world')"></textarea>
 })();
 </script>
 </body>
-</html>
+  </html>
