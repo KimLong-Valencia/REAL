@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lua Obfuscator</title>
+<style>
+:root{
+  --bg:#0d1210; --bg2:#121a17; --panel:#161f1b;
+  --line:#26332c; --text:#d9e8de; --muted:#7f9689;
+  --accent:#5ee6a8; --accent-dim:#2a5b45; --warn:#e6b85e;
+  --mono:'JetBrains Mono','Fira Code',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f2f5f2; --bg2:#e8ede9; --panel:#ffffff;
+    --line:#d3ddd6; --text:#16211a; --muted:#5a6b60;
+    --accent:#0f8f5a; --accent-dim:#c9ecdc; --warn:#8a6412;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f2f5f2; --bg2:#e8ede9; --panel:#ffffff;
+  --line:#d3ddd6; --text:#16211a; --muted:#5a6b60;
+  --accent:#0f8f5a; --accent-dim:#c9ecdc; --warn:#8a6412;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:var(--mono);
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  min-height:100%;
+}
+.wrap{max-width:920px;margin:0 auto;padding:28px 18px 60px;}
+header{margin-bottom:22px;}
+header h1{
+  font-size:1.5rem; margin:0 0 6px; letter-spacing:.2px;
+  color:var(--accent); font-weight:700;
+}
+header p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5;max-width:70ch;}
+.grid{display:grid;grid-template-columns:1fr;gap:16px;}
+@media(min-width:760px){.grid{grid-template-columns:1fr 1fr;}}
+.panel{
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:14px; display:flex; flex-direction:column; gap:10px;
+}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.panel-head label{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+textarea{
+  width:100%; min-height:260px; resize:vertical;
+  background:var(--bg2); color:var(--text); border:1px solid var(--line);
+  border-radius:8px; padding:10px; font-family:var(--mono); font-size:.82rem;
+  line-height:1.45; outline:none;
+}
+textarea:focus{border-color:var(--accent);}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.opt{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);}
+select{
+  background:var(--bg2);color:var(--text);border:1px solid var(--line);
+  border-radius:6px;padding:5px 8px;font-family:var(--mono);font-size:.78rem;
+}
+button{
+  font-family:var(--mono); font-size:.82rem; font-weight:600;
+  border-radius:8px; border:1px solid var(--accent-dim); cursor:pointer;
+  padding:9px 16px; background:transparent; color:var(--text);
+  transition:background .15s, transform .1s;
+}
+button:active{transform:scale(.97);}
+.btn-primary{background:var(--accent);color:#04120a;border-color:var(--accent);}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-ghost:hover{background:var(--accent-dim);}
+.small{font-size:.72rem;color:var(--muted);}
+.file-btn{position:relative;overflow:hidden;}
+.file-btn input[type=file]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;
+}
+.stat{font-size:.72rem;color:var(--muted);}
+.stat b{color:var(--accent);}
+.note{
+  margin-top:22px;font-size:.76rem;color:var(--muted);
+  border-left:2px solid var(--warn);padding:8px 12px;background:var(--bg2);
+  border-radius:0 6px 6px 0;line-height:1.55;
+}
+.toast{
+  position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  transform:translateX(-50%);background:var(--accent);color:#04120a;
+  padding:8px 16px;border-radius:20px;font-size:.78rem;font-weight:600;
+  opacity:0;pointer-events:none;transition:opacity .25s;z-index:10;
+}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Lua Obfuscator</h1>
+    <p>Mã hoá script Lua/Luau thành dạng bảng byte + khoá xoay, kèm loader tự giải mã lúc chạy. Chống copy-paste và đọc trực tiếp bằng mắt — không phải "không thể deobf 100%", vì không obfuscator nào làm được điều đó, nhưng sẽ chặn được đa số skidder copy nguyên văn.</p>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <label>Input — Lua gốc</label>
+        <button class="btn-ghost file-btn" type="button">Tải file .lua
+          <input type="file" id="fileIn" accept=".lua,.txt">
+        </button>
+      </div>
+      <textarea id="src" placeholder="-- dán script Lua của bạn vào đây
+print('hello world')"></textarea>
+      <div class="row">
+        <div class="opt">
+          <span>Số lớp XOR</span>
+          <select id="layers">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+        <div class="opt">
+          <span>Độ dài khoá</span>
+          <select id="keylen">
+            <option value="8">8</option>
+            <option value="16" selected>16</option>
+            <option value="32">32</option>
+          </select>
+        </div>
+        <div class="opt">
+          <span>Anti-beautify junk</span>
+          <select id="junk">
+            <option value="0">Tắt</option>
+            <option value="1" selected>Bật</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn-primary" id="runBtn" type="button">Obfuscate</button>
+        <span class="stat" id="inStat"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <label>Output — đã obfuscate</label>
+        <span class="stat" id="outStat"></span>
+      </div>
+      <textarea id="out" readonly placeholder="Kết quả sẽ hiện ở đây..."></textarea>
+      <div class="row">
+        <button class="btn-primary" id="copyBtn" type="button">Copy</button>
+        <button class="btn-ghost" id="dlBtn" type="button">Tải file .lua</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    Mỗi lần bấm Obfuscate sẽ sinh khoá và tên biến ngẫu nhiên khác nhau — chạy 2 lần cùng 1 input sẽ ra 2 output khác hẳn nhau, nên không thể nhận diện script bằng chữ ký cố định. Output tương thích Luau (Roblox) và Lua 5.1+ nhờ dùng <code>bit32.bxor</code> có fallback thủ công nếu môi trường không có bit32.
+  </div>
+</div>
+
+<div class="toast" id="toast">Đã copy</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const srcEl = $('src'), outEl = $('out'), inStat = $('inStat'), outStat = $('outStat');
+
+  function rndByte(){ return Math.floor(Math.random()*255)+1; }
+  function rndName(len){
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const digits = '0123456789';
+    let s = '_' + chars[Math.floor(Math.random()*chars.length)];
+    for(let i=1;i<len;i++){
+      const pool = Math.random()<0.7?chars:digits;
+      s += pool[Math.floor(Math.random()*pool.length)];
+    }
+    return s;
+  }
+  function toBytesUTF8(str){
+    return Array.from(new TextEncoder().encode(str));
+  }
+  function junkLine(){
+    const a = rndName(6), b = rndName(6);
+    const n1 = rndByte(), n2 = rndByte();
+    const forms = [
+      `local ${a}=(${n1}*${n2})%256`,
+      `local ${a}={${n1},${n2},${(n1+n2)%256}}`,
+      `local ${a}=(function() return ${n1} end)()`,
+      `if false then local ${a}=${n1} end`
+    ];
+    return forms[Math.floor(Math.random()*forms.length)];
+  }
+
+  function obfuscate(source, layers, keylen, junkOn){
+    let bytes = toBytesUTF8(source);
+    const keys = [];
+
+    for(let l=0;l<layers;l++){
+      const key = Array.from({length:keylen}, rndByte);
+      keys.push(key);
+      bytes = bytes.map((b,i)=> b ^ key[i % key.length]);
+    }
+
+    const D = rndName(9), K = rndName(9)+'s', O = rndName(9);
+    const iVar = rndName(4), cVar = rndName(4), bxorFn = rndName(7);
+
+    const keysLua = keys.map(k => '{'+k.join(',')+'}').join(',');
+    const dataLua = bytes.join(',');
+
+    let junk = '';
+    if(junkOn){
+      const n = 3 + Math.floor(Math.random()*3);
+      for(let i=0;i<n;i++) junk += junkLine()+'\n';
+    }
+
+    const loaderLines = [];
+    loaderLines.push(`local ${bxorFn}=bit32 and bit32.bxor or function(a,b) local r,p=0,1 while a>0 or b>0 do local x,y=a%2,b%2 if x~=y then r=r+p end a,b,p=(a-x)/2,(b-y)/2,p*2 end return r end`);
+    loaderLines.push(`local ${K}={${keysLua}}`);
+    loaderLines.push(`local ${D}={${dataLua}}`);
+    loaderLines.push(`for ${cVar}=1,#${K} do`);
+    loaderLines.push(`  local k=${K}[${cVar}]`);
+    loaderLines.push(`  for ${iVar}=1,#${D} do ${D}[${iVar}]=${bxorFn}(${D}[${iVar}], k[((${iVar}-1)%#k)+1]) end`);
+    loaderLines.push(`end`);
+    loaderLines.push(`local ${O}={}`);
+    loaderLines.push(`for ${iVar}=1,#${D} do ${O}[${iVar}]=string.char(${D}[${iVar}]) end`);
+    loaderLines.push(`local ok,exec=pcall(function() return (loadstring or load)(table.concat(${O})) end)`);
+    loaderLines.push(`if ok and exec then return exec() end`);
+
+    return junk + loaderLines.join('\n') + '\n';
+  }
+
+  function updateInStat(){
+    const n = srcEl.value.length;
+    inStat.textContent = n ? `${n} ký tự` : '';
+  }
+  srcEl.addEventListener('input', updateInStat);
+
+  $('fileIn').addEventListener('change', e=>{
+    const f = e.target.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=>{ srcEl.value = r.result; updateInStat(); };
+    r.readAsText(f);
+  });
+
+  $('runBtn').addEventListener('click', ()=>{
+    const src = srcEl.value;
+    if(!src.trim()){ outEl.value=''; outStat.textContent=''; return; }
+    const layers = parseInt($('layers').value,10);
+    const keylen = parseInt($('keylen').value,10);
+    const junkOn = $('junk').value === '1';
+    try{
+      const result = obfuscate(src, layers, keylen, junkOn);
+      outEl.value = result;
+      outStat.textContent = `${result.length} ký tự · ${layers} lớp XOR`;
+    }catch(err){
+      outEl.value = '-- lỗi: '+err.message;
+    }
+  });
+
+  $('copyBtn').addEventListener('click', async ()=>{
+    if(!outEl.value) return;
+    try{
+      await navigator.clipboard.writeText(outEl.value);
+    }catch(e){
+      outEl.select(); document.execCommand('copy');
+    }
+    const t = $('toast');
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 1200);
+  });
+
+  $('dlBtn').addEventListener('click', ()=>{
+    if(!outEl.value) return;
+    const blob = new Blob([outEl.value], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'obfuscated.lua';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+})();
+</script>
+</body>
+</html>
